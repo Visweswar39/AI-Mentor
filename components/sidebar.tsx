@@ -1,45 +1,70 @@
 "use client";
-import { cn } from "@/lib/utils";
-import { House, Plus, Settings } from "lucide-react";
+
+import { Home, Plus, Settings } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-export default function Sidebar() {
-  const pathname = usePathname();
+import { cn } from "@/lib/utils";
+import { useProModal } from "@/hooks/use-pro-modal";
+
+interface SidebarProps {
+  isPro: boolean;
+}
+
+export const Sidebar = ({ isPro }: SidebarProps) => {
+  const proModal = useProModal();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const onNavigate = (url: string, pro: boolean) => {
+    if (pro && !isPro) {
+      return proModal.onOpen();
+    }
+
+    return router.push(url);
+  };
+
   const routes = [
     {
-      name: "Home",
-      icon: House,
+      icon: Home,
       href: "/",
+      label: "Home",
+      pro: false,
     },
     {
-      name: "Create",
       icon: Plus,
-      href: "/create",
+      href: "/companion/new",
+      label: "Create",
+      pro: true,
     },
     {
-      name: "Settings",
       icon: Settings,
       href: "/settings",
+      label: "Settings",
+      pro: false,
     },
   ];
+
   return (
-    <div className="h-full p-1 flex flex-col gap-4">
-      {routes.map((route) => {
-        return (
-          <div
-            key={route.name}
-            className={cn(
-              "flex flex-col items-center p-4 rounded-lg font-medium hover:bg-primary/10 hover:text-primary cursor-pointer",
-              pathname === route.href && "bg-primary/10 text-primary",
-            )}
-            onClick={()=> router.push(route.href)}
-          >
-            <route.icon />
-            <p className="text-12">{route.name}</p>
-          </div>
-        );
-      })}
+    <div className="flex h-full flex-col space-y-4 bg-secondary text-primary">
+      <div className="flex flex-1 justify-center p-3">
+        <div className="space-y-2">
+          {routes.map((route) => (
+            <div
+              onClick={() => onNavigate(route.href, route.pro)}
+              key={route.href}
+              className={cn(
+                "group flex w-full cursor-pointer justify-start rounded-lg p-3 text-xs font-medium text-muted-foreground transition hover:bg-primary/10 hover:text-primary",
+                pathname === route.href && "bg-primary/10 text-primary",
+              )}
+            >
+              <div className="flex flex-1 flex-col items-center gap-y-2">
+                <route.icon className="h-5 w-5" />
+                {route.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
-}
+};
